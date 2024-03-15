@@ -57,6 +57,7 @@ exports.addMessageController = async (req, res) => {
         })
     } catch (error) {
         console.log('error', error)
+        console.log('error', error)
         res.status(400).send({
             success: false,
             message: "something went wrong while resistering",
