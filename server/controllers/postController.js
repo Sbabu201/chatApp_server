@@ -5,41 +5,15 @@ const commentModel = require("../models/commentModel")
 exports.getPostByIdController = async (req, res) => {
     try {
         const { id } = req.params;
-
-        const existUser = await userModel.findOne({ phone });
+        console.log('id', id);
+        const existUser = await postModel.findById(id);
         // console.log('existUser', existUser)
-        if (existUser.length === 0) {
-            return res.status(400).send({
-                success: false,
-                message: "Number is not resistered"
-            })
-        }
-        const cmpPass = await bcrypt.compare(password, existUser.password);
-        if (!cmpPass) {
-            return res.status(400).send({
-                success: false,
-                message: "password is incorrect "
-            })
-        }
 
 
-        const otp = otpGenerator.generate(4, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false });
-        const newOtp = await bcrypt.hash(otp, 12);
-        await otpModel.findOneAndUpdate({
-            phone
-        }, { otp: newOtp, expireTime: new Date(new Date().getTime()) },
-            { upsert: true, new: true, setDefaultsOnInsert: true }
-        )
-
-        await clientTwilio.messages.create({
-            body: `your otp is : ${otp}`,
-            to: `+91${phone}`,
-            from: phoneTeill
-        })
         res.status(201).send({
             success: true,
-            message: "otp sent successfully    ",
-            otp
+            message: "post got successfully    ",
+            existUser
         })
     } catch (error) {
         console.log('error', error)
@@ -53,7 +27,19 @@ exports.getPostByIdController = async (req, res) => {
 exports.getAllPostController = async (req, res) => {
     try {
 
-        const allPosts = await postModel.find().populate("user").populate("likes").populate("comments");
+        const allPosts = await postModel.find().populate("user").populate({
+            path: 'likes',
+            populate: {
+                path: 'user',
+                model: 'User'
+            }
+        }).populate({
+            path: 'comments',
+            populate: {
+                path: 'user',
+                model: 'User'
+            }
+        });
         // console.log('existUser', existUser)
         if (allPosts.length === 0) {
             return res.status(400).send({
@@ -166,7 +152,7 @@ exports.deletePostController = async (req, res) => {
 exports.getAllLikeController = async (req, res) => {
     try {
 
-        const allLikes = await likeModel.find().populate("user");
+        const allLikes = await likeModel.find().populate("user").populate("post");
         // console.log('allLikes', allLikes)
         res.status(201).send({
             success: true,
@@ -275,7 +261,7 @@ exports.deleteLikeController = async (req, res) => {
 exports.getAllCommentController = async (req, res) => {
     try {
 
-        const allComents = await commentModel.find().populate("user");
+        const allComents = await commentModel.find().populate("user").populate("post");
         //  console.log('allLikes', allLikes)
         res.status(201).send({
             success: true,

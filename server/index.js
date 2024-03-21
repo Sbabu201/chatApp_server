@@ -44,6 +44,7 @@ io.on("connection", (socket) => {
     global.chatSocket = socket;
     // console.log('connected socket', socket.id);
     socket.on("add-user", (userId) => {
+        console.log('userId', userId)
         onlineUsers.set(userId, socket.id);
     })
     socket.on("send-msg", (data) => {
@@ -53,7 +54,7 @@ io.on("connection", (socket) => {
         if (sendUserSocket) {
             // console.log('sendUserSocket', data.message)
             // alert("coming")
-            socket.to(sendUserSocket).emit("catch", { from: data.from, message: data.message });
+            socket.to(sendUserSocket).emit("catch", { from: data.from, to: data.to, message: data.message });
         }
     })
 })
