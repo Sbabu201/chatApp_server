@@ -1,0 +1,16 @@
+# Node modules
+node_modules/
+
+# Dependency directories
+npm-debug.log
+yarn-error.log
+
+# Environment variables file (if using .env)
+.env
+
+# Build output
+dist/
+build/
+
+# macOS system files
+.DS_Store
