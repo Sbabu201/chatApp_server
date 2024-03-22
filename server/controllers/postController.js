@@ -191,7 +191,7 @@ exports.addToLikeController = async (req, res) => {
         if (newPosts) {
             const updatedUSer = await postModel.updateOne({ _id: post }, { $push: { likes: newPosts._id } });
             await newPosts.save();
-            const newPost = await likeModel.findById(newPosts._id).populate("user");
+            const newPost = await likeModel.findById(newPosts._id).populate("user").populate("post");
             // console.log('newPost', newPost)
             return res.status(201).send({
                 success: true,
@@ -293,7 +293,7 @@ exports.addCommentController = async (req, res) => {
         if (newComments) {
             const updatePost = await postModel.updateOne({ _id: post }, { $push: { comments: newComments._id } });
             await newComments.save();
-            const newComment = await commentModel.findById(newComments._id).populate("user");
+            const newComment = await commentModel.findById(newComments._id).populate("user").populate("post");
             // console.log('newPost', newPost)
             return res.status(201).send({
                 success: true,
