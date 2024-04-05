@@ -44,7 +44,7 @@ const server = app.listen(PORT, () => {
 
 const io = socket(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: "https://chat-app-client-rouge.vercel.app/",
         methods: ["GET", "PUT"]
     }
 })
