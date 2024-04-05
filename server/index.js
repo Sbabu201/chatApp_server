@@ -9,10 +9,18 @@ const app = express()
 // socket 
 // const server = http.createServer(app)
 
-app.use(cors({
-    origin: 'https://chat-app-client-rouge.vercel.app/',
-    credentials: true,
-}));
+// const allowedOrigins = [`http://localhost:3000/`];
+
+// app.use(cors({
+//     origin: function (origin, callback) {
+//         if (!origin || allowedOrigins.includes(origin)) {
+//             callback(null, true);
+//         } else {
+//             callback(new Error('Not allowed by CORS'));
+//         }
+//     }
+// }));
+app.use(cors());
 app.use(express.json());
 mongodb()
 
@@ -36,7 +44,7 @@ const server = app.listen(PORT, () => {
 
 const io = socket(server, {
     cors: {
-        origin: "https://chat-app-client-rouge.vercel.app/",
+        origin: `http://localhost:3000`,
         methods: ["GET", "PUT"]
     }
 })
