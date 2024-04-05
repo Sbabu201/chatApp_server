@@ -1,10 +1,10 @@
 const userModel = require("../models/userModel")
 const otpGenerator = require("otp-generator");
 const twilio = require("twilio");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken")
 const otpModel = require("../models/otpModel")
-const token = "8c670f5dc203bc3549feab91325c9949";
+const token = "0763f43d4ac56643979df306cee96eca";
 const sid = "ACc444c60df9e39f66ddbea9b7d6083f8a";
 const phoneTeill = "+15415461650";
 const clientTwilio = new twilio(sid, token)
@@ -101,6 +101,8 @@ exports.loginUserController = async (req, res) => {
                 message: "Number is not resistered"
             })
         }
+
+
         const cmpPass = await bcrypt.compare(password, existUser.password);
         if (!cmpPass) {
             return res.status(400).send({
@@ -111,7 +113,8 @@ exports.loginUserController = async (req, res) => {
 
 
         const otp = otpGenerator.generate(4, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false });
-        const newOtp = await bcrypt.hash(otp, 12);
+        const salt = await bcrypt.genSalt(10);
+        const newOtp = await bcrypt.hash(otp, salt);
         await otpModel.findOneAndUpdate({
             phone
         }, { otp: newOtp, expireTime: new Date(new Date().getTime()) },
@@ -228,8 +231,8 @@ exports.signUpUserController = async (req, res) => {
                 message: "Number already exist "
             })
         }
-
-        const newPassword = await bcrypt.hash(password, 12);
+        const salt = await bcrypt.genSalt(10);
+        const newPassword = await bcrypt.hash(password, salt);
         // const compare = await bcrypt.compare(password, newPassword)
         const newUser = new userModel({ name, email, phone, password: newPassword });
         await newUser.save()
