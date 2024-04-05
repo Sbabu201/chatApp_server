@@ -98,7 +98,7 @@ exports.loginUserController = async (req, res) => {
 
         const existUser = await userModel.findOne({ email: phone });
         // console.log('existUser', existUser)
-        if (existUser.length === 0) {
+        if (!existUser) {
             return res.status(400).send({
                 success: false,
                 message: "Number is not resistered"
