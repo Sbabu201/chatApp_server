@@ -9,7 +9,7 @@ const app = express()
 // socket 
 // const server = http.createServer(app)
 
-const allowedOrigins = ['https://chatapp-uqzh.onrender.com'];
+const allowedOrigins = ['https://chat-app-client-rouge.vercel.app/'];
 
 app.use(cors({
     origin: function (origin, callback) {
