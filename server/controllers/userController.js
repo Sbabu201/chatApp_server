@@ -132,8 +132,8 @@ exports.loginUserController = async (req, res) => {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: process.env.EMAIL,
-                pass: process.env.PASSWORD
+                user: "smohapatra2022@gift.edu.in",
+                pass: "vpxmmqjfofxbwmux"
             }
         });
         const mailOptions = {
@@ -188,7 +188,7 @@ exports.getAllUsersController = async (req, res) => {
 exports.otpVerifyController = async (req, res) => {
     try {
         const { otp, phone } = req.body;
-        console.log('req.body', req.body)
+        // console.log('req.body', req.body)
         // console.log('otp', otp)
         if (!otp) {
             return res.status(400).send({
