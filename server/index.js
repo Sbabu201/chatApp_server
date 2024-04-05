@@ -10,7 +10,8 @@ const app = express()
 // const server = http.createServer(app)
 
 app.use(cors({
-    origin: 'https://chat-app-client-ig1bxqkil-soumya-sundar-mohapatras-projects.vercel.app'
+    origin: 'https://chat-app-client-rouge.vercel.app/',
+    credentials: true,
 }));
 app.use(express.json());
 mongodb()
