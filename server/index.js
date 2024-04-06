@@ -65,7 +65,7 @@ io.on("connection", (socket) => {
         const sendUserSocket = onlineUsers.get(data.to);
         console.log('sendUserSocket', sendUserSocket)
         if (sendUserSocket) {
-            console.log('sendUserSocket', data.message)
+            console.log('sendUserSocket', data)
             socket.to(sendUserSocket).emit("catch", { from: data.from, to: data.to, message: data.message });
         }
     })
