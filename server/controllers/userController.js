@@ -235,6 +235,7 @@ exports.otpVerifyController = async (req, res) => {
 }
 exports.signUpUserController = async (req, res) => {
     try {
+        // console.log('req.body', req.body)
         const { name, email, phone, password } = req.body;
         if (!phone || !name || !email || !password) {
             return res.status(400).send({
@@ -244,11 +245,11 @@ exports.signUpUserController = async (req, res) => {
         }
 
 
-        const existUser = await userModel.find({ phone });
+        const existUser = await userModel.find({ email });
         if (existUser.length > 0) {
             return res.status(200).send({
                 success: false,
-                message: "Number already exist "
+                message: "Email already exist "
             })
         }
         const salt = await bcrypt.genSalt(10);
