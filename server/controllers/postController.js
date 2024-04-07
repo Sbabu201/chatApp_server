@@ -89,7 +89,7 @@ exports.editPostController = async (req, res) => {
 exports.addPostController = async (req, res) => {
     try {
         const { name, title, image, user } = req.body;
-        if (!name || !title || !image || !user) {
+        if (!title || !image || !user) {
             return res.status(400).send({
                 success: false,
                 message: "all fields are required "
