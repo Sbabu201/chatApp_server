@@ -57,7 +57,7 @@ exports.userByIdController = async (req, res) => {
         }
 
 
-        const existUser = await userModel.findById(user).populate("posts");
+        const existUser = await userModel.findById(user).populate("posts").populate("followers").populate("following");
         // console.log('existUser', existUser)
         if (!existUser) {
             return res.status(400).send({
@@ -210,7 +210,7 @@ exports.otpVerifyController = async (req, res) => {
         const compared = await bcrypt.compare(otp, existOtp?.otp)
 
         if (compared) {
-            const user = await userModel.findOne({ email: phone }).populate("posts");
+            const user = await userModel.findOne({ email: phone }).populate("posts").populate("followers").populate("following");
             const { password, ...info } = user._doc;
             const accessToken = jwt.sign({ id: user._id }, "secretKey1234", { expiresIn: "5d" });
             return res.status(201).send({
@@ -279,11 +279,9 @@ exports.editUserController = async (req, res) => {
     try {
         const { profilePic, bio } = req.body;
         const id = req.params.id;
-        console.log('id , profilePic ,bio', id, profilePic, bio);
-        // console.log('first', user, follower)
 
-        const updateUser = await userModel.findByIdAndUpdate(id, { profilePic, bio }, { new: true });
-        console.log('updateUser', updateUser)
+
+        const updateUser = await userModel.findByIdAndUpdate(id, { profilePic, bio }, { new: true }).populate("posts").populate("followers").populate("following");;
         return res.status(201).send({
             success: true,
             message: "Updated successfully ",
