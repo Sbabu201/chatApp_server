@@ -281,7 +281,7 @@ exports.editUserController = async (req, res) => {
         const id = req.params.id;
 
 
-        const updateUser = await userModel.findByIdAndUpdate(id, { profilePic, bio }, { new: true }).populate("posts").populate("followers").populate("following");;
+        const updateUser = await userModel.findByIdAndUpdate(id, { profilePic, bio }, { new: true }).populate("posts").populate("followers").populate("following");
         return res.status(201).send({
             success: true,
             message: "Updated successfully ",
@@ -349,14 +349,16 @@ exports.removeFollowerController = async (req, res) => {
             })
         }
 
-        const updateFollowing = await userModel.findByIdAndUpdate(user, { $pull: { following: follower } }, { new: true });
-        const updateFollower = await userModel.findByIdAndUpdate(follower, { $pull: { followers: user } });
+        const updateFollowing2 = await userModel.findByIdAndUpdate(user, { $pull: { following: follower } }, { new: true });
+        const updateFollowing = await userModel.findById(user).populate("posts").populate("followers").populate("following");;
+        const updateFollower2 = await userModel.findByIdAndUpdate(follower, { $pull: { followers: user } });
+        const updateFollower = await userModel.findById(follower).populate("posts").populate("followers").populate("following");;
         // console.log('newPost', newPost)
         if (updateFollowing && updateFollower) {
             return res.status(201).send({
                 success: true,
                 message: "unfollowed successfully ",
-                updateFollowing
+                updateFollowing, updateFollower
             })
         }
 
