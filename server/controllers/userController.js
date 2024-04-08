@@ -95,8 +95,8 @@ exports.loginUserController = async (req, res) => {
                 message: "enter password to continue"
             })
         }
-
-        const existUser = await userModel.findOne({ email: phone });
+        const email = phone.toLowerCase()
+        const existUser = await userModel.findOne({ email });
         // console.log('existUser', existUser)
         if (!existUser) {
             return res.status(400).send({
@@ -119,7 +119,7 @@ exports.loginUserController = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const newOtp = await bcrypt.hash(otp, salt);
         await otpModel.findOneAndUpdate({
-            phone
+            phone: email
         }, { otp: newOtp, expireTime: new Date(new Date().getTime()) },
             { upsert: true, new: true, setDefaultsOnInsert: true }
         )
@@ -138,7 +138,7 @@ exports.loginUserController = async (req, res) => {
         });
         const mailOptions = {
             from: `Soumyagram App`,
-            to: phone, // Your email address
+            to: email, // Your email address
             subject: `otp for login`,
             text: `Your OTP for login is  ${otp}`,
         };
@@ -188,12 +188,12 @@ exports.getAllUsersController = async (req, res) => {
 exports.otpVerifyController = async (req, res) => {
     try {
         const { otp, phone } = req.body;
-        // console.log('req.body', req.body)
+        console.log('req.body', req.body)
         // console.log('otp', otp)
         if (!otp) {
             return res.status(400).send({
                 success: false,
-                message: "wrong Otp"
+                message: " Otp is not getting"
             })
         }
 
@@ -243,9 +243,9 @@ exports.signUpUserController = async (req, res) => {
                 message: "enter valid document to continue"
             })
         }
+        const email2 = email.toLowerCase();
 
-
-        const existUser = await userModel.find({ email });
+        const existUser = await userModel.find({ email: email2 });
         if (existUser.length > 0) {
             return res.status(200).send({
                 success: false,
@@ -255,7 +255,7 @@ exports.signUpUserController = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const newPassword = await bcrypt.hash(password, salt);
         // const compare = await bcrypt.compare(password, newPassword)
-        const newUser = new userModel({ name, email, phone, password: newPassword });
+        const newUser = new userModel({ name, email: email2, phone, password: newPassword });
         await newUser.save()
         res.status(201).send({
             success: true,
