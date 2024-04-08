@@ -275,6 +275,33 @@ exports.signUpUserController = async (req, res) => {
 
 // followers
 
+exports.editUserController = async (req, res) => {
+    try {
+        const { profilePic, bio } = req.body;
+        const id = req.params.id;
+        console.log('id , profilePic ,bio', id, profilePic, bio);
+        // console.log('first', user, follower)
+
+        const updateUser = await userModel.findByIdAndUpdate(id, { profilePic, bio }, { new: true });
+        console.log('updateUser', updateUser)
+        return res.status(201).send({
+            success: true,
+            message: "Updated successfully ",
+            updateUser
+        })
+
+
+
+    } catch (error) {
+        console.log('error', error)
+        return res.status(400).send({
+            success: false,
+            message: "something went wrong",
+            error
+        })
+    }
+}
+
 exports.addFollowerController = async (req, res) => {
     try {
         const { user, follower } = req.body;
