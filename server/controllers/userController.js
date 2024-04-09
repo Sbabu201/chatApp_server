@@ -278,10 +278,13 @@ exports.signUpUserController = async (req, res) => {
 exports.editUserController = async (req, res) => {
     try {
         const { profilePic, bio } = req.body;
+        console.log('profilePic', profilePic)
         const id = req.params.id;
-
-
-        const updateUser = await userModel.findByIdAndUpdate(id, { profilePic, bio }, { new: true }).populate("posts").populate("followers").populate("following");
+        let updateUser
+        if (profilePic === null) { updateUser = await userModel.findByIdAndUpdate(id, { bio }, { new: true }).populate("posts").populate("followers").populate("following"); }
+        else {
+            updateUser = await userModel.findByIdAndUpdate(id, { profilePic, bio }, { new: true }).populate("posts").populate("followers").populate("following");
+        }
         return res.status(201).send({
             success: true,
             message: "Updated successfully ",
