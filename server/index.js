@@ -44,10 +44,10 @@ const server = app.listen(PORT, () => {
 
 const io = socket(server, {
     cors: {
-        // origin: `https://chat-app-client-ebon.vercel.app`,
-        // origin: `http://localhost:3000`,
-        origin: `*`,
-        methods: ["GET", "PUT"]
+        origin: "https://chat-app-client-ebon.vercel.app",
+        methods: ["GET", "POST"],
+        allowedHeaders: ["my-custom-header"],
+        credentials: true
     }
 })
 
