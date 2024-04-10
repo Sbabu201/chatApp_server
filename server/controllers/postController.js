@@ -2,6 +2,9 @@ const postModel = require("../models/postModel")
 const userModel = require("../models/userModel")
 const likeModel = require("../models/likeModel")
 const commentModel = require("../models/commentModel")
+
+// post controller 
+
 exports.getPostByIdController = async (req, res) => {
     try {
         const { id } = req.params;
@@ -130,7 +133,9 @@ exports.deletePostController = async (req, res) => {
     try {
         const id = req.params.id;
         const deletePost = await postModel.findByIdAndDelete(id);
-        // console.log('existUser', existUser)
+        const commentPost = await commentModel.deleteMany({ post: id });
+        const likePost = await likeModel.deleteMany({ post: id });
+        // console.log('existUser', commentPost, likePost)
         if (deletePost)
             res.status(201).send({
                 success: true,
