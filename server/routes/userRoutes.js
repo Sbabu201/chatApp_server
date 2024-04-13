@@ -1,7 +1,7 @@
 
 
 const express = require("express");
-const { loginUserController, editUserController, protectedRouteController, removeFollowerController, addFollowerController, getAllUsersController, userByIdController, signUpUserController, otpVerifyController } = require("../controllers/userController");
+const { loginUserController, editUserController, protectedRouteController, removeFollowerController, addFollowerController, getAllUsersController, userByIdController, signUpUserController, otpVerifyController, getAllStoryController, removeStoryController, addStoryController } = require("../controllers/userController");
 const verify = require("../verify/verify")
 const router = express.Router();
 
@@ -14,6 +14,9 @@ router.get("/protected", verify, protectedRouteController);
 router.post("/login/verify", otpVerifyController);
 router.get("/details/:id", userByIdController);
 router.post("/signup", signUpUserController);
-
+// story routes
+router.post("/addstory", addStoryController);
+router.delete("/removestory/:id", removeStoryController);
+router.get("/allstory", getAllStoryController);
 
 module.exports = router;

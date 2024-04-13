@@ -1,4 +1,5 @@
 const userModel = require("../models/userModel")
+const storyModel = require("../models/storyModel")
 const otpGenerator = require("otp-generator");
 const twilio = require("twilio");
 const bcrypt = require("bcryptjs");
@@ -57,7 +58,12 @@ exports.userByIdController = async (req, res) => {
         }
 
 
-        const existUser = await userModel.findById(user).populate("posts").populate("followers").populate("following");
+        const existUser = await userModel.findById(user).populate("posts").populate("followers").populate({
+            path: 'following',
+            populate: {
+                path: 'story' // Specify the path to the nested schema you want to populate
+            }
+        }).populate("story");
         // console.log('existUser', existUser)
         if (!existUser) {
             return res.status(400).send({
@@ -161,7 +167,7 @@ exports.loginUserController = async (req, res) => {
 }
 exports.getAllUsersController = async (req, res) => {
     try {
-        const usersWithoutPasswords = await userModel.find().populate("posts").populate("followers").populate("following");
+        const usersWithoutPasswords = await userModel.find().populate("posts").populate("followers").populate("following").populate("story");
         if (usersWithoutPasswords) {
             // console.log('allUser', allUser)
             // const usersWithoutPasswords = allUser.map(user => {
@@ -281,9 +287,21 @@ exports.editUserController = async (req, res) => {
         console.log('profilePic', profilePic)
         const id = req.params.id;
         let updateUser
-        if (profilePic === null) { updateUser = await userModel.findByIdAndUpdate(id, { bio }, { new: true }).populate("posts").populate("followers").populate("following"); }
+        if (profilePic === null) {
+            updateUser = await userModel.findByIdAndUpdate(id, { bio }, { new: true }).populate("posts").populate("followers").populate({
+                path: 'following',
+                populate: {
+                    path: 'story' // Specify the path to the nested schema you want to populate
+                }
+            }).populate("story")
+        }
         else {
-            updateUser = await userModel.findByIdAndUpdate(id, { profilePic, bio }, { new: true }).populate("posts").populate("followers").populate("following");
+            updateUser = await userModel.findByIdAndUpdate(id, { profilePic, bio }, { new: true }).populate("posts").populate("followers").populate({
+                path: 'following',
+                populate: {
+                    path: 'story' // Specify the path to the nested schema you want to populate
+                }
+            }).populate("story");
         }
         return res.status(201).send({
             success: true,
@@ -342,6 +360,194 @@ exports.addFollowerController = async (req, res) => {
     }
 }
 exports.removeFollowerController = async (req, res) => {
+    try {
+        const { user, follower } = req.body;
+        // console.log('first', user, follower)
+        if (!user || !follower) {
+            return res.status(400).send({
+                success: false,
+                message: "all fields are required "
+            })
+        }
+
+        const updateFollowing2 = await userModel.findByIdAndUpdate(user, { $pull: { following: follower } }, { new: true });
+        const updateFollowing = await userModel.findById(user).populate("posts").populate("followers").populate("following");;
+        const updateFollower2 = await userModel.findByIdAndUpdate(follower, { $pull: { followers: user } });
+        const updateFollower = await userModel.findById(follower).populate("posts").populate("followers").populate("following");;
+        // console.log('newPost', newPost)
+        if (updateFollowing && updateFollower) {
+            return res.status(201).send({
+                success: true,
+                message: "unfollowed successfully ",
+                updateFollowing, updateFollower
+            })
+        }
+
+        return res.status(400).send({
+            success: false,
+            message: "failed to unfollow ",
+
+        })
+
+
+    } catch (error) {
+        console.log('error', error)
+        return res.status(400).send({
+            success: false,
+            message: "something went wrong",
+            error
+        })
+    }
+}
+
+
+// story controller 
+
+// exports.addStoryController = async (req, res) => {
+//     try {
+//         const { title, content, user } = req.body;
+//         // console.log('req.body', req.body)
+//         // console.log('first', user, follower)
+//         if (!user || !title || !content) {
+//             return res.status(400).send({
+//                 success: false,
+//                 message: "all fields are required "
+//             })
+//         }
+
+//         const addStory = new storyModel({
+//             title, content, user, expiration: new Date(Date.now() + 24 * 60 * 60 * 1000)
+//         })
+//         await addStory.save()
+
+//         return res.status(201).send({
+//             success: true,
+//             message: "following successfully ",
+//             addStory
+//         })
+
+
+
+//     } catch (error) {
+//         console.log('error', error)
+//         return res.status(400).send({
+//             success: false,
+//             message: "something went wrong",
+//             error
+//         })
+//     }
+// }
+// exports.removeStoryController = async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         // console.log('first', id)
+//         if (!id) {
+//             return res.status(400).send({
+//                 success: false,
+//                 message: "all fields are required "
+//             })
+//         }
+
+//         const deleteStory = await storyModel.findByIdAndDelete(id);
+//         if (deleteStory) {
+//             return res.status(201).send({
+//                 success: true,
+//                 message: "Deleted story successfully ",
+//                 deleteStory
+//             })
+//         }
+
+//         return res.status(400).send({
+//             success: false,
+//             message: "failed to delete ",
+
+//         })
+
+
+//     } catch (error) {
+//         console.log('error', error)
+//         return res.status(400).send({
+//             success: false,
+//             message: "something went wrong",
+//             error
+//         })
+//     }
+// }
+
+exports.getAllStoryController = async (req, res) => {
+    try {
+        const allStory = await storyModel.find();
+        if (allStory) {
+            return res.status(201).send({
+                success: true,
+                message: "all Stories got successfully   ",
+                allStory
+            })
+        }
+
+    } catch (error) {
+        console.log('error', error)
+        res.status(400).send({
+            success: false,
+            message: "something went wrong",
+            error
+        })
+    }
+}
+
+// Story Controller 
+
+
+
+exports.addStoryController = async (req, res) => {
+    try {
+        const { title, content, user } = req.body;
+        // console.log('first', user, follower)
+        if (!user || !title || !content) {
+            return res.status(400).send({
+                success: false,
+                message: "all fields are required "
+            })
+        }
+
+
+        const addStory = new storyModel({
+            title, content, user, expiration: new Date(Date.now() + 24 * 60 * 60 * 1000)
+        })
+        await addStory.save()
+        console.log('addStory._id', addStory._id)
+        const updateStory = await userModel.findByIdAndUpdate(user, { $push: { story: addStory._id } }, { new: true }).populate("posts").populate({
+            path: 'following',
+            populate: {
+                path: 'story' // Specify the path to the nested schema you want to populate
+            }
+        }).populate("story").populate("followers");
+        console.log('updateStory', updateStory)
+        if (updateStory) {
+            return res.status(201).send({
+                success: true,
+                message: "Story Updated successfully ",
+                updateStory
+            })
+        }
+
+        return res.status(400).send({
+            success: false,
+            message: "failed to follow ",
+
+        })
+
+
+    } catch (error) {
+        console.log('error', error)
+        return res.status(400).send({
+            success: false,
+            message: "something went wrong",
+            error
+        })
+    }
+}
+exports.removeStoryController = async (req, res) => {
     try {
         const { user, follower } = req.body;
         // console.log('first', user, follower)

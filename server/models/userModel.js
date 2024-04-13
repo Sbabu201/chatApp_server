@@ -36,9 +36,9 @@ const userSchema = mongoose.Schema({
         type: mongoose.Types.ObjectId,
         ref: "Post",
     }],
-    Story: [{
+    story: [{
         type: mongoose.Types.ObjectId,
-        ref: "Post",
+        ref: "Story",
     }]
 
 }, { timestamps: true })
