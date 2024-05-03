@@ -88,14 +88,15 @@ exports.userByIdController = async (req, res) => {
 }
 exports.loginUserController = async (req, res) => {
     try {
-        const { phone, password } = req.body;
+        const { phone } = req.body;
+        const password2 = req.body.password
         if (!phone) {
             return res.status(400).send({
                 success: false,
                 message: "enter valid email to continue"
             })
         }
-        if (!password) {
+        if (!password2) {
             return res.status(400).send({
                 success: false,
                 message: "enter password to continue"
@@ -107,12 +108,12 @@ exports.loginUserController = async (req, res) => {
         if (!existUser) {
             return res.status(400).send({
                 success: false,
-                message: "Number is not resistered"
+                message: "Email is not resistered"
             })
         }
 
 
-        const cmpPass = await bcrypt.compare(password, existUser.password);
+        const cmpPass = await bcrypt.compare(password2, existUser.password);
         if (!cmpPass) {
             return res.status(400).send({
                 success: false,
@@ -121,41 +122,17 @@ exports.loginUserController = async (req, res) => {
         }
 
 
-        const otp = otpGenerator.generate(4, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false });
-        const salt = await bcrypt.genSalt(10);
-        const newOtp = await bcrypt.hash(otp, salt);
-        await otpModel.findOneAndUpdate({
-            phone: email
-        }, { otp: newOtp, expireTime: new Date(new Date().getTime()) },
-            { upsert: true, new: true, setDefaultsOnInsert: true }
-        )
-
-        // await clientTwilio.messages.create({
-        //     body: `your otp is : ${otp}`,
-        //     to: `+91${phone}`,
-        //     from: phoneTeill
-        // })
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: "smohapatra2022@gift.edu.in",
-                pass: "vpxmmqjfofxbwmux"
-            }
-        });
-        const mailOptions = {
-            from: `Soumyagram App`,
-            to: email, // Your email address
-            subject: `otp for login`,
-            text: `Your OTP for login is  ${otp}`,
-        };
-
-        const info = await transporter.sendMail(mailOptions);
-
-        res.status(201).send({
+        const user = await userModel.findOne({ email: phone }).populate("posts").populate("followers").populate("following");
+        const { password, ...info } = user._doc;
+        const accessToken = jwt.sign({ id: user._id }, "secretKey1234", { expiresIn: "5d" });
+        return res.status(201).send({
+            message: "login successful",
             success: true,
-            message: "otp sent successfully    ",
-            otp
+            info, accessToken
         })
+
+
+
     } catch (error) {
         console.log('error', error)
         res.status(400).send({
@@ -193,7 +170,7 @@ exports.getAllUsersController = async (req, res) => {
 
 exports.otpVerifyController = async (req, res) => {
     try {
-        const { otp, phone } = req.body;
+        const { otp, phone, email, name, password } = req.body;
         console.log('req.body', req.body)
         // console.log('otp', otp)
         if (!otp) {
@@ -204,31 +181,32 @@ exports.otpVerifyController = async (req, res) => {
         }
 
 
-        const existOtp = await otpModel.findOne({ phone });
+        const existOtp = await otpModel.findOne({ phone: email });
         // console.log('existOtp', existOtp)
         if (!existOtp) {
             return res.status(400).send({
                 success: false,
-                message: "Number is not resistered"
+                message: "Email is not resistered"
             })
         }
 
         const compared = await bcrypt.compare(otp, existOtp?.otp)
-
+        const salt = await bcrypt.genSalt(10);
+        const newPassword = await bcrypt.hash(password, salt);
+        // const compare = await bcrypt.compare(password, newPassword)
+        const newUser = new userModel({ name, email, phone, password: newPassword });
+        await newUser.save()
         if (compared) {
-            const user = await userModel.findOne({ email: phone }).populate("posts").populate("followers").populate("following");
-            const { password, ...info } = user._doc;
-            const accessToken = jwt.sign({ id: user._id }, "secretKey1234", { expiresIn: "5d" });
             return res.status(201).send({
-                message: "login successful",
+                message: "Registration successful",
                 success: true,
-                info, accessToken
+                newUser
             })
 
         }
         res.status(400).send({
-            success: true,
-            message: "wrong otp"
+            success: false,
+            message: "Not registered"
         })
     } catch (error) {
         console.log('error', error)
@@ -258,15 +236,35 @@ exports.signUpUserController = async (req, res) => {
                 message: "Email already exist "
             })
         }
+        const otp = otpGenerator.generate(4, { upperCaseAlphabets: false, specialChars: false, lowerCaseAlphabets: false });
         const salt = await bcrypt.genSalt(10);
-        const newPassword = await bcrypt.hash(password, salt);
-        // const compare = await bcrypt.compare(password, newPassword)
-        const newUser = new userModel({ name, email: email2, phone, password: newPassword });
-        await newUser.save()
+        const newOtp = await bcrypt.hash(otp, salt);
+        await otpModel.findOneAndUpdate({
+            phone: email2
+        }, { otp: newOtp, expireTime: new Date(new Date().getTime()) },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        )
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: "smohapatra2022@gift.edu.in",
+                pass: "vpxmmqjfofxbwmux"
+            }
+        });
+        const mailOptions = {
+            from: `Soumyagram App`,
+            to: email2, // Your email address
+            subject: `otp for login`,
+            text: `hi ${name} , Your OTP for login to our app  is  ${otp}`,
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+
         res.status(201).send({
             success: true,
-            message: "registered successfully    ",
-            newUser
+            message: "otp sent successfully    ",
+            otp
         })
     } catch (error) {
         console.log('error', error)
